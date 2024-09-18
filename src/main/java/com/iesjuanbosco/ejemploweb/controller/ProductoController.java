@@ -3,8 +3,10 @@ package com.iesjuanbosco.ejemploweb.controller;
 import com.iesjuanbosco.ejemploweb.entity.Producto;
 import com.iesjuanbosco.ejemploweb.repository.ProductoRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +21,31 @@ public class ProductoController {
         this.productoRepository=repository;
     }
 
+    //******ASI  NO SE HACE**************
+
+    @GetMapping("/productos2")    //Anotacion que indica la URL localhost:8080/productos2 mediante GET
+    @ResponseBody       //Anotacion que indica que no pase por el motor de plantillas thymelead sino que vpy a decolver el html directamente
+    public String index(){
+        List<Producto> productos=this.productoRepository.findAll();
+        StringBuilder HTML = new StringBuilder("<html><body>");
+
+        productos.forEach(producto-> {
+            HTML.append("<p>" +producto.getTitulo() + "</p>");
+        });
+        HTML.append("</body></html>");
+        return HTML.toString();
+    }
+    //**********************************
+
+
     /* Con la anotacion GetMapping le indicamos a Spring que el siguiente metodo
     se va a ejecutar cuando el ususario acceda a la url -> GET http://localhost/productos*/
 
     @GetMapping("/productos")
-    public String findAll(){
+    public String findAll(Model model){
         List<Producto> productos=this.productoRepository.findAll();
+        //Pasamos los datos a la vista
+        model.addAttribute("producto",productos);
         return "producto-list";
     }
     /*La diferencia entre post y get es que get lo uso cuando quiero que me de algo y
