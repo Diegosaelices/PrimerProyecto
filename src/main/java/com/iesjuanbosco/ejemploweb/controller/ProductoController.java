@@ -5,11 +5,14 @@ import com.iesjuanbosco.ejemploweb.repository.ProductoRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 
 @Controller //Anotacion que le indica a Spring que esta clase es un controlador
 
@@ -21,22 +24,6 @@ public class ProductoController {
         this.productoRepository=repository;
     }
 
-    //******ASI  NO SE HACE**************
-
-    @GetMapping("/productos2")    //Anotacion que indica la URL localhost:8080/productos2 mediante GET
-    @ResponseBody       //Anotacion que indica que no pase por el motor de plantillas thymelead sino que vpy a decolver el html directamente
-    public String index(){
-        List<Producto> productos=this.productoRepository.findAll();
-        StringBuilder HTML = new StringBuilder("<html><body>");
-
-        productos.forEach(producto-> {
-            HTML.append("<p>" +producto.getTitulo() + "</p>");
-        });
-        HTML.append("</body></html>");
-        return HTML.toString();
-    }
-    //**********************************
-
 
     /* Con la anotacion GetMapping le indicamos a Spring que el siguiente metodo
     se va a ejecutar cuando el ususario acceda a la url -> GET http://localhost/productos*/
@@ -45,7 +32,7 @@ public class ProductoController {
     public String findAll(Model model){
         List<Producto> productos=this.productoRepository.findAll();
         //Pasamos los datos a la vista
-        model.addAttribute("producto",productos);
+        model.addAttribute("productos",productos);
         return "producto-list";
     }
     /*La diferencia entre post y get es que get lo uso cuando quiero que me de algo y
@@ -69,4 +56,43 @@ public class ProductoController {
         //Redirige al controlador /productos
         return "redirect:/productos";
     }
+    //Borra un producto a partir del id de la ruta
+    @GetMapping("/prodcutos/del/{id}")
+    @ResponseBody
+    public String delete(@PathVariable long id){
+        //Borrar un producto usando el repositorio
+        productoRepository.deleteById(id);
+        //Redirige a /productos
+        return "redirect:/productos";
+    }
+    //Muestra un producto a partir del id de la ruta
+    @GetMapping("/productos/view/{id}")
+    public String view(@PathVariable Long id, Model model){
+        //Obtenemos el producto de la BD a partir del id de la barra de direcciones
+        Optional<Producto> producto = productoRepository.findById(id);
+        if(producto.isPresent()){
+            //Mandamos el producto a la vista
+            model.addAttribute("producto",producto.get());
+            return "producto-view";
+        }
+        else{
+            return "redirect:/productos";
+        }
+    }
+
+    @GetMapping("/productos/new")
+    public String newProducto(Model model){
+        model.addAttribute("producto", new Producto());
+        return "producto-new";
+    }
+
+    @PostMapping("/productos/new")
+    public String newProductoInsert(Producto producto){
+        //Insertamos los datos en la BD
+        productoRepository.save(producto);
+        //Redirigimos a /productos
+        return "redirect:/productos";
+    }
+
 }
+
